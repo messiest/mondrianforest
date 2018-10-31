@@ -133,7 +133,7 @@ def parser_add_common_options():
     parser.add_option('--normalize_features', dest='normalize_features', default=1, type='int',
             help='do you want to normalize features in 0-1 range? (0=False, 1=True) [default: %default]')
     parser.add_option('--select_features', dest='select_features', default=0, type='int',
-            help='do you wish to apply feature selection? (1=True, 0=False) (supported only for regression) [default: %default]') 
+            help='do you wish to apply feature selection? (1=True, 0=False) (supported only for regression) [default: %default]')
     parser.add_option('--optype', dest='optype', default='class',
             help='nature of outputs in your dataset (class/real) '\
             'for (classification/regression)  [default: %default]')
@@ -141,12 +141,12 @@ def parser_add_common_options():
             help='path of the dataset [default: %default]')
     parser.add_option('--debug', dest='debug', default='0', type='int',
             help='debug or not? (0=False, 1=everything, 2=special stuff only) [default: %default]')
-    parser.add_option('--op_dir', dest='op_dir', default='results', 
+    parser.add_option('--op_dir', dest='op_dir', default='results',
             help='output directory for pickle files (NOTE: make sure directory exists) [default: %default]')
-    parser.add_option('--tag', dest='tag', default='', 
+    parser.add_option('--tag', dest='tag', default='',
             help='additional tag to identify results from a particular run [default: %default]')
     parser.add_option('--save', dest='save', default=0, type='int',
-            help='do you wish to save the results? (1=True, 0=False) [default: %default]') 
+            help='do you wish to save the results? (1=True, 0=False) [default: %default]')
     parser.add_option('-v', '--verbose',dest='verbose', default=1, type='int',
             help='verbosity level (0 is minimum, 4 is maximum) [default: %default]')
     parser.add_option('--init_id', dest='init_id', default=1, type='int',
@@ -157,15 +157,15 @@ def parser_add_common_options():
 def parser_add_mf_options(parser):
     group = optparse.OptionGroup(parser, "Mondrian forest options")
     group.add_option('--n_mondrians', dest='n_mondrians', default=10, type='int',
-            help='number of trees in mondrian forest [default: %default]')   
+            help='number of trees in mondrian forest [default: %default]')
     group.add_option('--budget', dest='budget', default=-1, type='float',
             help='budget for mondrian tree prior [default: %default]' \
-                    ' NOTE: budget=-1 will be treated as infinity')   
+                    ' NOTE: budget=-1 will be treated as infinity')
     group.add_option('--discount_factor', dest='discount_factor', default=10, type='float',
             help='value of discount_factor parameter for HNSP (optype=class) [default: %default] '
-            'NOTE: actual discount parameter = discount_factor * num_dimensions')   
+            'NOTE: actual discount parameter = discount_factor * num_dimensions')
     group.add_option('--n_minibatches', dest='n_minibatches', default=1, type='int',
-            help='number of minibatches [default: %default]')   
+            help='number of minibatches [default: %default]')
     group.add_option('--draw_mondrian', dest='draw_mondrian', default=0, type='int',
             help='do you want to draw mondrians? (0=False, 1=True) [default: %default] ')
     group.add_option('--smooth_hierarchically', dest='smooth_hierarchically', default=1, type='int',
@@ -288,7 +288,7 @@ def load_data(settings):
             raise Exception('select_features currently supported only for regression')
         scores[np.isnan(scores)] = 0.   # FIXME: setting nan scores to 0. Better alternative?
         scores_sorted, idx_sorted = np.sort(scores), np.argsort(scores)
-        flag_relevant = scores_sorted > (scores_sorted[-1] * 0.05)  # FIXME: better way to set threshold? 
+        flag_relevant = scores_sorted > (scores_sorted[-1] * 0.05)  # FIXME: better way to set threshold?
         idx_feat_selected = idx_sorted[flag_relevant]
         assert len(idx_feat_selected) >= 1
         print(scores)
@@ -300,14 +300,14 @@ def load_data(settings):
             data['x_train'] = data['x_train'][:, idx_feat_selected]
             data['x_test'] = data['x_test'][:, idx_feat_selected]
         else:
-            data['x_train'] = np.dot(data['x_train'], np.diag(scores)) 
+            data['x_train'] = np.dot(data['x_train'], np.diag(scores))
             data['x_test'] = np.dot(data['x_test'], np.diag(scores))
         data['n_dim'] = data['x_train'].shape[1]
     # ------ beginning of hack ----------
     is_mondrianforest = True
     n_minibatches = settings.n_minibatches
     if is_mondrianforest:
-        # creates data['train_ids_partition']['current'] and data['train_ids_partition']['cumulative'] 
+        # creates data['train_ids_partition']['current'] and data['train_ids_partition']['cumulative']
         #    where current[idx] contains train_ids in minibatch "idx", cumulative contains train_ids in all
         #    minibatches from 0 till idx  ... can be used in gen_train_ids_mf or here (see below for idx > -1)
         data['train_ids_partition'] = {'current': {}, 'cumulative': {}}
@@ -330,7 +330,7 @@ def load_data(settings):
             idx_tmp = idx_base + idx_minibatch * n_points_per_minibatch
             if is_last_minibatch:
                 # including the last (data[n_train'] % settings.n_minibatches) indices along with indices in idx_tmp
-                idx_tmp = np.arange(idx_minibatch * n_points_per_minibatch, data['n_train'])
+                idx_tmp = np.arange(idx_minibatch * n_points_per_minibatch, data['n_train'], dtype=int)
             train_ids_current = train_ids[idx_tmp]
             # print idx_minibatch, train_ids_current
             data['train_ids_partition']['current'][idx_minibatch] = train_ids_current
@@ -362,11 +362,11 @@ def load_toy_hypercube(n_dim, settings, class_output=False):
 
 
 def gen_hypercube_data(n_points, n_dim, class_output, f_values=None):
-    # synthetic hypercube-like dataset 
+    # synthetic hypercube-like dataset
     # x-values of data points are close to vertices of a hypercube
     # y-value of data point is different
     y_sd = 0.
-    x_sd = 0.1 
+    x_sd = 0.1
     mag = 3
     x = x_sd * np.random.randn(n_points, n_dim)
     n_vertices = 2 ** n_dim
@@ -440,20 +440,20 @@ def load_toy_data():
         if y_ == 0:
             x_train[i, :] += np.sign(np.random.rand() - 0.5) * mag
         else:
-            tmp = np.sign(np.random.rand() - 0.5) 
+            tmp = np.sign(np.random.rand() - 0.5)
             x_train[i, :] += np.array([tmp, -tmp]) * mag
     for i, y_ in enumerate(y_test):
         if y_ == 0:
             x_test[i, :] += np.sign(np.random.rand() - 0.5) * mag
         else:
-            tmp = np.sign(np.random.rand() - 0.5) 
+            tmp = np.sign(np.random.rand() - 0.5)
             x_test[i, :] += np.array([tmp, -tmp]) * mag
     data = {'x_train': x_train, 'y_train': y_train, 'n_class': n_class, \
             'n_dim': n_dim, 'n_train': n_train, 'x_test': x_test, \
             'y_test': y_test, 'n_test': n_test, 'is_sparse': False}
     print(data)
     return data
- 
+
 
 def load_toy_mf_data():
     n_dim = 2
@@ -467,7 +467,7 @@ def load_toy_mf_data():
         plt.scatter(x_train[:2, 0], x_train[:2, 1], color='b')
         plt.scatter(x_train[2:4, 0], x_train[2:4, 1], color='r')
         plt.scatter(x_train[4:, 0], x_train[4:, 1], color='k')
-        plt.savefig('toy-mf_dataset.pdf', type='pdf') 
+        plt.savefig('toy-mf_dataset.pdf', type='pdf')
     x_test = x_train
     n_train = x_train.shape[0]
     n_test = x_test.shape[0]
@@ -509,7 +509,7 @@ def load_halfmoons(dataset):
         plt.scatter(x_train[i1, 0], x_train[i1, 1], color='b')
         plt.scatter(x_train[i2, 0], x_train[i2, 1], color='r')
         name = '%s_dataset.pdf' % dataset
-        plt.savefig(name, type='pdf') 
+        plt.savefig(name, type='pdf')
     x_test, y_test = x_train.copy(), y_train.copy()
     n_train = x_train.shape[0]
     n_test = x_test.shape[0]
@@ -518,7 +518,7 @@ def load_halfmoons(dataset):
             'y_test': y_test, 'n_test': n_test, 'is_sparse': False}
     return data
 
- 
+
 def load_rgf_datasets(settings):
     filename_train = settings.data_path + 'exp-data' + '/' + settings.dataset
     filename_test = filename_train[:-3]
@@ -567,7 +567,7 @@ def get_tree_limits(p, data):
         d_extent[left] = left_extent
         d_extent[right] = right_extent
     return (hlines_list, vlines_list)
-            
+
 
 def bootstrap(train_ids, settings=None):
     """ online bagging: each point is included Poisson(1) times """
@@ -627,7 +627,7 @@ def compute_metrics_classification(y_test, pred_prob, do_not_compute_log_prob=Fa
         pred = random.choice(np.argwhere(tmp == np.amax(tmp)).flatten())    # randomly break ties
         acc += (pred == y)
         if not do_not_compute_log_prob:
-            log_tmp_pred = math.log(tmp[y]) 
+            log_tmp_pred = math.log(tmp[y])
             try:
                 assert(not np.isinf(abs(log_tmp_pred)))
             except AssertionError:
@@ -707,7 +707,7 @@ def stop_split(train_ids, settings, data, cache):
 
 
 def compute_dirichlet_normalizer(cnt, alpha=0.0, prior_term=None):
-    """ cnt is np.array, alpha is concentration of Dirichlet prior 
+    """ cnt is np.array, alpha is concentration of Dirichlet prior
         => alpha/K is the mass for each component of a K-dimensional Dirichlet
     """
     try:
@@ -725,7 +725,7 @@ def compute_dirichlet_normalizer(cnt, alpha=0.0, prior_term=None):
 
 
 def compute_dirichlet_normalizer_fast(cnt, cache):
-    """ cnt is np.array, alpha is concentration of Dirichlet prior 
+    """ cnt is np.array, alpha is concentration of Dirichlet prior
         => alpha/K is the mass for each component of a K-dimensional Dirichlet
     """
     op = compute_gammaln_1(cnt, cache) - compute_gammaln_2(cnt.sum(), cache) \
@@ -779,7 +779,7 @@ def get_reg_stats(y):
 
 
 def compute_entropy(cnts, alpha=0.0):
-    """ returns the entropy of a multinomial distribution with 
+    """ returns the entropy of a multinomial distribution with
         mean parameter \propto (cnts + alpha/len(cnts))
         entropy unit = nats """
     prob = cnts * 1.0 + alpha / len(cnts)
@@ -836,7 +836,7 @@ def init_update_posterior_node_incremental(tree, data, param, settings, cache, n
             tree.sum_y2[node_id] = 0
             tree.n_points[node_id] = 0
         else:
-            tree.sum_y[node_id] = tree.sum_y[init_node_id] + 0 
+            tree.sum_y[node_id] = tree.sum_y[init_node_id] + 0
             tree.sum_y2[node_id] = tree.sum_y2[init_node_id] + 0
             tree.n_points[node_id] = tree.n_points[init_node_id] + 0
     update_posterior_node_incremental(tree, data, param, settings, cache, node_id, train_ids_new)
